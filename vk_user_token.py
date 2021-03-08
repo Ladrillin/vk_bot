@@ -1,5 +1,7 @@
 import vk_api
 import json
+import networkx as nx
+import matplotlib.pyplot as mpl
 
 
 def auth_handler():
@@ -8,14 +10,32 @@ def auth_handler():
     return code, remember_device
 
 
-def parsing_level_1(friends_list_id):
+def parsing_level_1(root_id, friends_list_id):
+    mpl.rcParams.update({'font.size': 8})
+    graph_network = nx.Graph()
     users_info_list_test = []
-    for friend_id in friends_list_id['items']:
+    """ for friend_id in friends_list_id['items']:
         user_info = vk.users.get(user_ids=friend_id,
                                  fields='bdate, connections')
-        users_info_list_test.append(user_info)
-    """with open('friend_list.json', 'w', encoding='utf-8') as json_file:
+        users_info_list_test.append(user_info) """
+    graph_network.add_node(root_id)
+    counter = 0
+    for friend_id in friends_list_id['items']:  # Создаём первый уровень ака связи рут + все друзья
+        graph_network.add_edge(root_id, friend_id)
+    for root_mutual_friend_id in friends_list_id['items']:
+        try:
+            get_mutual = vk.friends.getMutual(source_uid=root_id,
+                                              target_uid=root_mutual_friend_id)
+            for mutual_friend in get_mutual:
+                graph_network.add_edge(root_mutual_friend_id, mutual_friend)
+                counter += 1
+        except vk_api.exceptions.ApiError:
+            continue
+        """with open('friend_list.json', 'w', encoding='utf-8') as json_file:
         json.dump(users_info_list_test, json_file, indent=4, sort_keys=True)"""
+    nx.draw(graph_network, with_labels=True)
+    print(counter)
+    return mpl.show()
 
 
 with open('access_to_vk.txt', 'r') as access_file:
@@ -31,7 +51,7 @@ except vk_api.AuthError as error_msg:
     print(error_msg)
 vk = vk_session.get_api()
 
-
-getting_friends = vk.friends.get(user_id=153475582)  # friends.getMutual для closed профилей
-print(getting_friends)                               # С target_uid И source_uid вместо user_id
-# parsing_level_1(getting_friends)
+source_id = 141311052
+getting_friends = vk.friends.get(user_id=source_id,)
+print(getting_friends)
+parsing_level_1(source_id, getting_friends)
