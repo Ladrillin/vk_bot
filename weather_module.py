@@ -5,7 +5,7 @@ from opencage.geocoder import OpenCageGeocode
 
 
 def yandex_weather(place):
-    geocoder_token = 'e34e8d67cd414073a46c7d85a13b96c5'
+    geocoder_token = 'token'
     geocoder = OpenCageGeocode(geocoder_token)
     geocode_results = geocoder.geocode(str(place))
     latitude = str('%6f' % geocode_results[0]['geometry']['lat'])
@@ -15,7 +15,7 @@ def yandex_weather(place):
 
     url = f'https://api.weather.yandex.ru/v2/informers?lat={latitude}&lon={longitude}'
     query_headers = {
-        'X-Yandex-API-Key': '67a8c1c9-6685-48b7-8d7f-031f22f38804'
+        'X-Yandex-API-Key': 'token'
     }
     response_yandex = requests.get(url, headers=query_headers)
     return response_yandex.json()
